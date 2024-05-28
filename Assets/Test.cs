@@ -10,22 +10,41 @@ using Image = UnityEngine.UI.Image;
 
 public class Test : MonoBehaviour
 {
-    public Texture2D image;
+    public static Test Instance { get; private set; }  // Singleton instance
+
+    public Texture2D image;   // upload test image 
+
     public Button uploadButton;
     public Button showAllFoldersButton;
     public Transform folderParent;
 
     public GameObject filePrefab;
     public GameObject imagePrefab;
-    public Image faceImage;
 
-    private List<string> subFolders = new List<string> { "01", "02", "03" };
+    //private List<string> folders = new List<string>();
+    private List<string> subFolders = new List<string>();
+
+    public string selectedFolderName = "";
+
+    void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);  // Optional: Keep the instance alive across scenes
+        }
+        else
+        {
+            Destroy(gameObject);  // Destroy if a duplicate instance is created
+        }
+    }
+
 
     void Start()
     {
         uploadButton.onClick.AddListener(HandlerUploadButton);
         showAllFoldersButton.onClick.AddListener(HandlerListAllFoldersButton);
-        HandlerImageDownload();
+        //HandlerImageDownload();
     }
 
     public void HandlerUploadButton()
@@ -39,7 +58,7 @@ public class Test : MonoBehaviour
     }
     public void HandlerImageDownload()
     {
-        StartCoroutine(DownloadImagesInTopFolder("test1"));
+        StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));
     }
 
     public IEnumerator UploadButton()
@@ -59,7 +78,8 @@ public class Test : MonoBehaviour
     {
         var listRequest = GoogleDriveFiles.List();
         listRequest.Fields = new List<string> { "files(id)", "files(name)" };
-        listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and 'me' in owners";
+        // Query modified to fetch only top-level folders
+        listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and 'root' in parents";
         yield return listRequest.Send();
 
         if (listRequest.IsError)
@@ -68,14 +88,26 @@ public class Test : MonoBehaviour
             yield break;
         }
 
-        foreach (var file in listRequest.ResponseData.Files)
+
+        // 역순으로 정렬된 리스트를 이용하여 GameObjects 생성
+        var files = new List<UnityGoogleDrive.Data.File>(listRequest.ResponseData.Files);
+        files.Reverse();
+        
+        foreach (var file in files)
         {
             Debug.Log($"Folder ID: {file.Id}, Folder Name: {file.Name}");
             GameObject fileObject = Instantiate(filePrefab, folderParent);
             Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
             fileNameText.text = file.Name;
+            fileObject.name = file.Name;
+
+            // add listener
+
+            fileObject.GetComponent<Button>().onClick.AddListener(() => SelectedFileNameListener(fileObject.name));
         }
+
     }
+
 
     private IEnumerator DownloadImagesInTopFolder(string topFolderName)
     {
@@ -154,5 +186,13 @@ public class Test : MonoBehaviour
             imageComponent.sprite = Sprite.Create(downloadedTexture, new Rect(0, 0, downloadedTexture.width, downloadedTexture.height), new Vector2(0.5f, 0.5f));
         }
     }
+
+
+    public void SelectedFileNameListener(string folderName)
+    {
+        selectedFolderName = folderName;
+        Debug.Log("Selected folder: " + selectedFolderName);
+    }
+
 }
 
