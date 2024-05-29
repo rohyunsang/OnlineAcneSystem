@@ -16,6 +16,7 @@ public class Test : MonoBehaviour
 
     public Button uploadButton;
     public Button showAllFoldersButton;
+    public Button selectedFolderDownloadButton;
     public Transform folderParent;
 
     public GameObject filePrefab;
@@ -44,7 +45,7 @@ public class Test : MonoBehaviour
     {
         uploadButton.onClick.AddListener(HandlerUploadButton);
         showAllFoldersButton.onClick.AddListener(HandlerListAllFoldersButton);
-        //HandlerImageDownload();
+        selectedFolderDownloadButton.onClick.AddListener(HandlerImageDownload);
     }
 
     public void HandlerUploadButton()
@@ -56,9 +57,10 @@ public class Test : MonoBehaviour
     {
         StartCoroutine(ShowAllFolders());
     }
+
     public void HandlerImageDownload()
     {
-        StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));
+        StartCoroutine(ShowAllSubFolders());
     }
 
     public IEnumerator UploadButton()
@@ -74,7 +76,7 @@ public class Test : MonoBehaviour
         print(request.RequestData.Id);
     }
 
-    public IEnumerator ShowAllFolders()
+    public IEnumerator ShowAllFolders()   // Root Folder 안에 있는거. 
     {
         var listRequest = GoogleDriveFiles.List();
         listRequest.Fields = new List<string> { "files(id)", "files(name)" };
@@ -108,9 +110,41 @@ public class Test : MonoBehaviour
 
     }
 
+    public IEnumerator ShowAllSubFolders()   // selectedFolder 안에 있는거. 
+    {
+        var listRequest = GoogleDriveFiles.List();
+        listRequest.Fields = new List<string> { "files(id)", "files(name)" };
+        // Query modified to fetch only top-level folders
+        listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and '"+selectedFolderName+"' in parents";
+        yield return listRequest.Send();
+
+        if (listRequest.IsError)
+        {
+            Debug.LogError($"Error: {listRequest.Error}");
+            yield break;
+        }
+
+
+        var files = new List<UnityGoogleDrive.Data.File>(listRequest.ResponseData.Files);
+        files.Reverse();
+
+
+
+        foreach (var file in files)
+        {
+            subFolders.Add(file.Name);
+            Debug.Log(file.Name);
+        }
+
+
+        StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));   // Sub Folder들의 이름을 안다음에 실행.
+    }
+
+
 
     private IEnumerator DownloadImagesInTopFolder(string topFolderName)
     {
+        Debug.Log("TopFolderFunction : " + topFolderName);
         // Step 1: Find the top-level folder
         var listRequest = GoogleDriveFiles.List();
         listRequest.Fields = new List<string> { "files(id)", "files(name)" };
@@ -129,6 +163,7 @@ public class Test : MonoBehaviour
         // Step 2: Find each subfolder (01, 02, 03) in the top-level folder
         foreach (string subFolderName in subFolders)
         {
+            Debug.Log("is Running? ");
             listRequest = GoogleDriveFiles.List();
             listRequest.Fields = new List<string> { "files(id)", "files(name)" };
             listRequest.Q = $"'{topLevelFolderId}' in parents and name = '{subFolderName}' and mimeType = 'application/vnd.google-apps.folder'";
@@ -186,6 +221,7 @@ public class Test : MonoBehaviour
             imageComponent.sprite = Sprite.Create(downloadedTexture, new Rect(0, 0, downloadedTexture.width, downloadedTexture.height), new Vector2(0.5f, 0.5f));
         }
     }
+
 
 
     public void SelectedFileNameListener(string folderName)
