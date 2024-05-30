@@ -8,14 +8,14 @@ using UnityEngine.WSA;
 using Image = UnityEngine.UI.Image;
 
 
-public class Test : MonoBehaviour
+public class GoogleDriveManager : MonoBehaviour
 {
-    public static Test Instance { get; private set; }  // Singleton instance
+    public static GoogleDriveManager Instance { get; private set; }  // Singleton instance
 
     public Texture2D image;   // upload test image 
 
     public Button uploadButton;
-    public Button showAllFoldersButton;
+    public Button cloudFolderLoadButton;
     public Button selectedFolderDownloadButton;
     public Transform folderParent;
 
@@ -26,6 +26,7 @@ public class Test : MonoBehaviour
     private List<string> subFolders = new List<string>();
 
     public string selectedFolderName = "";
+    
 
     void Awake()
     {
@@ -44,7 +45,7 @@ public class Test : MonoBehaviour
     void Start()
     {
         uploadButton.onClick.AddListener(HandlerUploadButton);
-        showAllFoldersButton.onClick.AddListener(HandlerListAllFoldersButton);
+        cloudFolderLoadButton.onClick.AddListener(HandlerListAllFoldersButton);
         selectedFolderDownloadButton.onClick.AddListener(HandlerImageDownload);
     }
 
@@ -227,7 +228,8 @@ public class Test : MonoBehaviour
     public void SelectedFileNameListener(string folderName)
     {
         selectedFolderName = folderName;
-        Debug.Log("Selected folder: " + selectedFolderName);
+        UIManager.Instance.checkPasswordInfo.SetActive(true);
+        UIManager.Instance.selectedFolderNameText.text = "선택된 폴더 이름 :  " + selectedFolderName;
     }
 
 }
