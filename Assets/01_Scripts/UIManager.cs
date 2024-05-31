@@ -24,7 +24,12 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
+    [Header("Panels")]
+    public GameObject initPanel;
+    public GameObject mainPanel;
+
     [Header("InitPanel")]
+    public Transform folderParent;  // InitPanel - ScrollView - Content
     public Text selectedFolderNameText;   // InitPanel - CheckPasswordInfo
     public GameObject checkPasswordInfo;
     public GameObject failPasswordInfo;
@@ -34,6 +39,9 @@ public class UIManager : MonoBehaviour
     [Header("MainPanel")]
     public Transform subFolderScrollView;
     public Transform portraitScrollView;
+
+    [Header("SingleTon Datas")]
+    public List<GameObject> imageObjects = new List<GameObject>();
 
     void Start()
     {
@@ -67,7 +75,8 @@ public class UIManager : MonoBehaviour
         if (flag)  // Correct Password
         {
             // 
-            StartCoroutine(GoogleDriveManager.Instance.ShowAllSubFolders());
+            initPanel.SetActive(false);
+            StartCoroutine(GoogleDriveManager.Instance.SelectedSubFolders());
         }
         else
         {
@@ -80,6 +89,16 @@ public class UIManager : MonoBehaviour
     #region MainPanel
 
 
+    //fileObject.GetComponent<Button>().onClick.AddListener(() => UIManager.Instance.ActivateImagesWithName(fileObject.name));
+    // -> Listener
+    public void ActivateImagesWithName(string selectedName)  
+    {
+        foreach (GameObject imgObj in imageObjects)
+        {
+            // 파일 이름이 선택된 이름을 포함하면 활성화, 그렇지 않으면 비활성화
+            imgObj.SetActive(imgObj.name.Contains(selectedName));
+        }
+    }
 
     #endregion
 }

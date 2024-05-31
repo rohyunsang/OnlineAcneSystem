@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Unity.VisualScripting;
 using UnityEngine.WSA;
 using Image = UnityEngine.UI.Image;
+using System;
 
 
 public class GoogleDriveManager : MonoBehaviour
@@ -17,13 +18,13 @@ public class GoogleDriveManager : MonoBehaviour
     public Button uploadButton;
     public Button cloudFolderLoadButton;
     public Button selectedFolderDownloadButton;
-    public Transform folderParent;
-
+    
     public GameObject filePrefab;
     public GameObject imagePrefab;
 
     //private List<string> folders = new List<string>();
-    private List<string> subFolders = new List<string>();
+    public List<string> subFolders = new List<string>();
+    public Dictionary<string, string> folderNameToIdMap = new Dictionary<string, string>();
 
     public string selectedFolderName = "";
     
@@ -44,9 +45,9 @@ public class GoogleDriveManager : MonoBehaviour
 
     void Start()
     {
-        uploadButton.onClick.AddListener(HandlerUploadButton);
+        //uploadButton.onClick.AddListener(HandlerUploadButton);
         cloudFolderLoadButton.onClick.AddListener(HandlerListAllFoldersButton);
-        selectedFolderDownloadButton.onClick.AddListener(HandlerImageDownload);
+        //selectedFolderDownloadButton.onClick.AddListener(HandlerImageDownload);
     }
 
     public void HandlerUploadButton()
@@ -56,12 +57,12 @@ public class GoogleDriveManager : MonoBehaviour
 
     public void HandlerListAllFoldersButton()
     {
-        StartCoroutine(ShowAllFolders());
+        StartCoroutine(RootSubFolders());
     }
 
     public void HandlerImageDownload()
     {
-        StartCoroutine(ShowAllSubFolders());
+        StartCoroutine(SelectedSubFolders());
     }
 
     public IEnumerator UploadButton()
@@ -77,7 +78,7 @@ public class GoogleDriveManager : MonoBehaviour
         print(request.RequestData.Id);
     }
 
-    public IEnumerator ShowAllFolders()   // Root Folder 안에 있는거. 
+    public IEnumerator RootSubFolders()   // Root Folder 안에 있는 폴더들 
     {
         var listRequest = GoogleDriveFiles.List();
         listRequest.Fields = new List<string> { "files(id)", "files(name)" };
@@ -99,7 +100,9 @@ public class GoogleDriveManager : MonoBehaviour
         foreach (var file in files)
         {
             Debug.Log($"Folder ID: {file.Id}, Folder Name: {file.Name}");
-            GameObject fileObject = Instantiate(filePrefab, folderParent);
+            folderNameToIdMap[file.Name] = file.Id;  // Save folder ID
+
+            GameObject fileObject = Instantiate(filePrefab, UIManager.Instance.folderParent);
             Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
             fileNameText.text = file.Name;
             fileObject.name = file.Name;
@@ -108,15 +111,19 @@ public class GoogleDriveManager : MonoBehaviour
 
             fileObject.GetComponent<Button>().onClick.AddListener(() => SelectedFileNameListener(fileObject.name));
         }
-
     }
 
-    public IEnumerator ShowAllSubFolders()   // selectedFolder 안에 있는거. 
+    public IEnumerator SelectedSubFolders()
     {
+        if (!folderNameToIdMap.TryGetValue(selectedFolderName, out var folderId))
+        {
+            Debug.LogError("Folder ID not found for: " + selectedFolderName);
+            yield break;
+        }
+
         var listRequest = GoogleDriveFiles.List();
         listRequest.Fields = new List<string> { "files(id)", "files(name)" };
-        // Query modified to fetch only top-level folders
-        listRequest.Q = "mimeType = 'application/vnd.google-apps.folder' and '"+selectedFolderName+"' in parents";
+        listRequest.Q = $"mimeType = 'application/vnd.google-apps.folder' and '{folderId}' in parents";
         yield return listRequest.Send();
 
         if (listRequest.IsError)
@@ -126,22 +133,26 @@ public class GoogleDriveManager : MonoBehaviour
         }
 
 
+        // need sorting and reverse 
         var files = new List<UnityGoogleDrive.Data.File>(listRequest.ResponseData.Files);
-        files.Reverse();
-
-
+        files.Sort((x, y) => String.Compare(x.Name, y.Name));
 
         foreach (var file in files)
         {
             subFolders.Add(file.Name);
             Debug.Log(file.Name);
+
+            GameObject fileObject = Instantiate(filePrefab, UIManager.Instance.subFolderScrollView);
+            Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
+            fileNameText.text = file.Name;
+            fileObject.name = file.Name;
+
+            fileObject.GetComponent<Button>().onClick.AddListener(() => UIManager.Instance.ActivateImagesWithName(fileObject.name));
         }
-
-
         StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));   // Sub Folder들의 이름을 안다음에 실행.
     }
 
-
+    
 
     private IEnumerator DownloadImagesInTopFolder(string topFolderName)
     {
@@ -161,6 +172,8 @@ public class GoogleDriveManager : MonoBehaviour
         string topLevelFolderId = listRequest.ResponseData.Files[0].Id;
         Debug.Log($"Found top-level folder '{topFolderName}' with ID: {topLevelFolderId}");
 
+        // 시작전에 imageObject 초기화 
+        UIManager.Instance.imageObjects.Clear();
         // Step 2: Find each subfolder (01, 02, 03) in the top-level folder
         foreach (string subFolderName in subFolders)
         {
@@ -217,9 +230,18 @@ public class GoogleDriveManager : MonoBehaviour
             downloadedTexture.LoadImage(fileContent);
 
             // Instantiate the imagePrefab and set the downloaded image
-            GameObject imageObject = Instantiate(imagePrefab, folderParent);
+            GameObject imageObject = Instantiate(imagePrefab, UIManager.Instance.portraitScrollView);
             UnityEngine.UI.Image imageComponent = imageObject.GetComponent<Image>();
             imageComponent.sprite = Sprite.Create(downloadedTexture, new Rect(0, 0, downloadedTexture.width, downloadedTexture.height), new Vector2(0.5f, 0.5f));
+            imageObject.name = file.Name;
+            Text imageNameText = imageObject.transform.Find("ImageName").GetComponent<UnityEngine.UI.Text>();
+            imageNameText.text = file.Name;
+
+
+            UIManager.Instance.imageObjects.Add(imageObject);
+
+            if (!imageObject.name.Contains("01"))  // 제일 첫 번째 폴더의 사진들은 바로 보이게.
+                imageObject.SetActive(false);
         }
     }
 
