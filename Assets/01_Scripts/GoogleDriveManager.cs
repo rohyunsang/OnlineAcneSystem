@@ -27,7 +27,8 @@ public class GoogleDriveManager : MonoBehaviour
     public Dictionary<string, string> folderNameToIdMap = new Dictionary<string, string>();
 
     public string selectedFolderName = "";
-    
+
+    public Dictionary<string, Texture2D> textureDictionary = new Dictionary<string, Texture2D>();  // Image textures
 
     void Awake()
     {
@@ -236,6 +237,9 @@ public class GoogleDriveManager : MonoBehaviour
             imageObject.name = file.Name;
             Text imageNameText = imageObject.transform.Find("ImageName").GetComponent<UnityEngine.UI.Text>();
             imageNameText.text = file.Name;
+
+            // Store the texture in the dictionary
+            textureDictionary[file.Name] = downloadedTexture;
 
 
             UIManager.Instance.imageObjects.Add(imageObject);

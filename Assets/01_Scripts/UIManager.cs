@@ -39,6 +39,7 @@ public class UIManager : MonoBehaviour
     [Header("MainPanel")]
     public Transform subFolderScrollView;
     public Transform portraitScrollView;
+    public RawImage faceImage;      // 작업 캔버스 이미지 
 
     [Header("SingleTon Datas")]
     public List<GameObject> imageObjects = new List<GameObject>();
