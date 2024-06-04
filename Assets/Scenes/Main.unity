@@ -2515,7 +2515,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -231.125, y: 42.625}
+  m_AnchoredPosition: {x: -231.125, y: 51.91}
   m_SizeDelta: {x: 462.25, y: 85.25}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1904316277
@@ -5879,7 +5879,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 955.9, y: 0}
+  m_AnchoredPosition: {x: 980, y: 0}
   m_SizeDelta: {x: 715, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &6269189566511882108
@@ -5934,13 +5934,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c367ad3878e776048bc5823e63361d6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resetImageButton: {fileID: 0}
-  faceImage: {fileID: 0}
-  backGround: {fileID: 0}
-  circlePrefab: {fileID: 0}
-  namingButtonPrefabs: {fileID: 0}
-  statusButtonPrefabs: {fileID: 0}
-  graphicRaycaster: {fileID: 0}
+  resetImageButton: {fileID: 692653760}
+  faceImage: {fileID: 6269189566511882107}
+  backGround: {fileID: 6269189565303453186}
+  circlePrefab: {fileID: 6467952595873649915, guid: 4615f97b538dab645b5521f3dcf085b1, type: 3}
+  blackheadPrefab: {fileID: 6467952595873649915, guid: 2b7baab366db5b34ea302b54f3c88e50, type: 3}
+  whiteheadPrefab: {fileID: 6467952595873649915, guid: 6401fe7d0f1852a4abab777ef97a289b, type: 3}
+  papulePrefab: {fileID: 6467952595873649915, guid: 49d1c0d3ad1ce8c4e88dcbcac379e9bb, type: 3}
+  pustuePrefab: {fileID: 6467952595873649915, guid: 87272c19054bcdf4bb27973435c2927d, type: 3}
+  nodulePrefab: {fileID: 6467952595873649915, guid: feb2b110c93d99e46a54c521370a460c, type: 3}
+  namingButtonPrefabs: {fileID: 8005053566348731678, guid: c76bde84e08812446aafaf94a1993122, type: 3}
+  statusButtonPrefabs: {fileID: 8005053566348731678, guid: 826f37ba8c9cb824f8e44b568f6143bc, type: 3}
+  graphicRaycaster: {fileID: 6269189566511882110}
 --- !u!1 &6269189566566866318
 GameObject:
   m_ObjectHideFlags: 0

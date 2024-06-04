@@ -20,7 +20,13 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
 
     public Transform faceImage; // faceImage 부모 오브젝트 참조 self reference
     public Transform backGround;
+
     public GameObject circlePrefab;
+    public GameObject blackheadPrefab;
+    public GameObject whiteheadPrefab;
+    public GameObject papulePrefab;
+    public GameObject pustuePrefab;
+    public GameObject nodulePrefab;
 
     public GameObject namingButtonPrefabs; // Reference to the button prefab
     public GameObject statusButtonPrefabs;
@@ -81,6 +87,9 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(faceImageRect, eventData.position, eventData.pressEventCamera, out Vector2 localPointerPosition))
             {
                 Debug.Log(localPointerPosition);
+
+                #region Delete Part
+
                 if (IsCircleAtPosition(localPointerPosition))
                 {
                     // If there's a circle, create the statusButtons
@@ -91,25 +100,25 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
                     statusButtonsInstance.GetComponent<RectTransform>().anchoredPosition = convertedPosition + new Vector2(130f, 5f);
 
                     // Find the circle object at the specified position
-                    GameObject circle = GetCircleAtPosition(localPointerPosition);
+                    GameObject statusImage = GetCircleAtPosition(localPointerPosition);
 
                     // Pass the circle's name to the Text component of NameButton's child
                     Transform nameButton = statusButtonsInstance.transform.Find("NameButton");
                     if (nameButton != null)
                     {
                         Text nameText = nameButton.GetChild(0).GetComponent<Text>();
-                        if (nameText != null && circle != null)
+                        if (nameText != null && statusImage != null)
                         {
-                            nameText.text = circle.name;
+                            nameText.text = statusImage.name;
                         }
                     }
 
                     // Add a listener to the Delete button to destroy the circle when clicked
                     Button deleteButton = statusButtonsInstance.transform.Find("DeleteButton").GetComponent<Button>();
-                    if (deleteButton != null && circle != null)
+                    if (deleteButton != null && statusImage != null)
                     {
                         deleteButton.onClick.AddListener(() => {
-                            Destroy(circle);
+                            Destroy(statusImage);
                             Destroy(statusButtonsInstance);
                         });
                     }
@@ -120,10 +129,15 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
                         cancelButton.onClick.AddListener(() => Destroy(statusButtonsInstance));
                     }
                 }
+                #endregion
+
+                #region Instantiate Part
                 else
                 {
-                    GameObject circle = Instantiate(circlePrefab, faceImage);
-                    circle.GetComponent<RectTransform>().anchoredPosition = localPointerPosition;
+                    GameObject statusImage = Instantiate(circlePrefab, faceImage); // 
+                    statusImage.GetComponent<RectTransform>().anchoredPosition = localPointerPosition;
+
+                    Vector2 originPosition = localPointerPosition;
 
                     GameObject buttonsInstance = Instantiate(namingButtonPrefabs, backGround);
                     buttonsInstance.GetComponent<RectTransform>().SetAsLastSibling();
@@ -141,28 +155,59 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
                             btn.onClick.AddListener(() =>
                             {
                                 string buttonText = btn.transform.GetChild(0).GetComponent<Text>().text;
-                                ChangeCircleName(circle, buttonText);
-                                Destroy(buttonsInstance);
+                                ChangeCircleShape(statusImage, buttonText, localPointerPosition, buttonsInstance);
+                                if(buttonsInstance != null) Destroy(buttonsInstance);
                             });
                         }
                     }
                 }
+                #endregion
 
             }
         }
     }
-
-    void ChangeCircleName(GameObject circle, string newName)
+    void ChangeCircleShape(GameObject tmpStatusImage, string newName, Vector2 originPosition, GameObject buttonsInstance)
     {
-        if (newName.Equals("cancel")) Destroy(circle);
-        circle.name = newName;
+        Destroy(tmpStatusImage);
+
+        GameObject statusImage = null;
+        
+
+        if (newName.Equals("Blackhead"))
+        {
+            statusImage = Instantiate(blackheadPrefab, faceImage);
+        }
+        else if (newName.Equals("Whitehead"))
+        {
+            statusImage = Instantiate(whiteheadPrefab, faceImage);
+        }
+        else if (newName.Equals("Papule"))
+        {
+            statusImage = Instantiate(papulePrefab, faceImage);
+        }
+        else if (newName.Equals("Pustule"))
+        {
+            statusImage = Instantiate(pustuePrefab, faceImage);
+        }
+        else if (newName.Equals("Nodule"))
+        {
+            statusImage = Instantiate(nodulePrefab, faceImage);
+        }
+        else if (newName.Equals("Cancel"))
+        {
+            Destroy(buttonsInstance);
+            return;
+        }
+
+        statusImage.name = newName;
+        statusImage.GetComponent<RectTransform>().anchoredPosition = originPosition;
     }
     bool IsCircleAtPosition(Vector2 position)
     {
         Debug.Log("OnIsCircleAtPosition");
         foreach (Transform child in faceImage)
         {
-            if (child.gameObject.CompareTag("Circle"))
+            if (child.gameObject.CompareTag("StatusImage"))
             {
                 RectTransform circleRect = child as RectTransform;
                 // Directly check if the position is within the bounds of the circleRect
@@ -178,7 +223,7 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
     {
         foreach (Transform child in faceImage)
         {
-            if (child.gameObject.CompareTag("Circle"))  // Assuming circle objects have a "Circle" tag
+            if (child.gameObject.CompareTag("StatusImage"))  // Assuming circle objects have a "StatusImage" tag
             {
                 RectTransform circleRect = child as RectTransform;
                 if (circleRect.rect.Contains(position - (Vector2)circleRect.anchoredPosition))

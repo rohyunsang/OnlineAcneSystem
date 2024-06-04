@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5793360165967100549}
   m_Layer: 5
   m_Name: Blackhead
-  m_TagString: Circle
+  m_TagString: StatusImage
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
