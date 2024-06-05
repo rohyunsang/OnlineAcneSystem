@@ -235,7 +235,6 @@ namespace UnityGoogleDrive
                 HandleUnauthorizedResponse();
                 return;
             }
-
             AppendError(WebRequest.error);
 
             HandleResponseData(WebRequest.downloadHandler);
