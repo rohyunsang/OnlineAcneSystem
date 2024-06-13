@@ -65,6 +65,8 @@ public class TextureCombine : MonoBehaviour
                 // rectTransform.rect를 사용하여 실제 크기를 가져옵니다.
                 float width = rectTransform.rect.width;
                 float height = rectTransform.rect.height;
+                width = width * (PIXEL_WIDTH / PIXEL_FACEIMAGE_WIDTH);
+                height = height * (PIXEL_HEIGHT / PIXEL_FACEIMAGE_HEIGHT);
 
                 Vector2 pivot = rectTransform.pivot;
                 Vector2 anchorPos = rectTransform.anchoredPosition;
