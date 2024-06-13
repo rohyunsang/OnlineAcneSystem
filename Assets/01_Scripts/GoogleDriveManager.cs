@@ -256,5 +256,9 @@ public class GoogleDriveManager : MonoBehaviour
         UIManager.Instance.selectedFolderNameText.text = "선택된 폴더 이름 :  " + selectedFolderName;
     }
 
+    public void RefreshToken()  // 구글 다시 인증 하기 
+    {
+        AuthController.RefreshAccessToken();
+    }
 }
 
