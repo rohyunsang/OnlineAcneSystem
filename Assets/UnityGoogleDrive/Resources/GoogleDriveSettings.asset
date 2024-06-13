@@ -22,7 +22,7 @@ MonoBehaviour:
     redirect_uris:
     - http://localhost
   uriSchemeClientCredentials:
-    clientId: 696406680359-ipe4umc6tqrhcoamb13097hj79o8btf4.apps.googleusercontent.com
+    clientId: 
     reversedClientId: 
     plistVersion: 
     bundleId: 
