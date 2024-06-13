@@ -92,7 +92,6 @@ public class TextureCombine : MonoBehaviour
         SaveJPG();
     }
 
-
     public void SaveJPG()
     {
         byte[] bytes = combinedTexture.EncodeToJPG();
