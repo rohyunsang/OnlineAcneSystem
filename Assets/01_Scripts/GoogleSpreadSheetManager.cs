@@ -28,6 +28,9 @@ public class GoogleSpreadSheetManager : MonoBehaviour
 
     // 링크 뒤 export ~ 부분을 빼고 export?format=tsv 추가하기
     const string userDataURL = "https://docs.google.com/spreadsheets/d/15yMnm_0sphfWg-48sAUYLBPRtZAhszSkn6mgD7jx92s/export?format=tsv"; // UserData
+    
+    // 대체 링크 
+    //const string userDataURL = "https://docs.google.com/spreadsheets/d/1zXlTI5rcYXtiQHpDWi8e3Ho8PGEvWLQl5354jIq_SHA/export?format=tsv";
 
     [SerializeField]
     public List<UserData> userDatas = new List<UserData>();

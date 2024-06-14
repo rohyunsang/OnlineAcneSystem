@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 1473784949546893946}
   - component: {fileID: 6507356296016962602}
   - component: {fileID: 6072445393559571301}
-  - component: {fileID: 5793360165967100549}
   m_Layer: 5
   m_Name: Blackhead
   m_TagString: StatusImage
@@ -69,7 +68,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0fcb606e8cb573b4a9481532f96336c8, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c737a2d5c4396a84e9f148f16a3a8f07, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -117,16 +116,3 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &5793360165967100549
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6467952595873649915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ShowMaskGraphic: 1
