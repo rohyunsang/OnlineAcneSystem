@@ -12,7 +12,7 @@ public class TextureCombine : MonoBehaviour
 
     public float PIXEL_WIDTH = 2136f;
     public float PIXEL_HEIGHT = 3216f;
-    public float PIXEL_FACEIMAGE_WIDTH = 715f;
+    private const float PIXEL_FACEIMAGE_WIDTH = 715f;
     private const float PIXEL_FACEIMAGE_HEIGHT = 1080f;
 
     private void Start()
@@ -63,10 +63,11 @@ public class TextureCombine : MonoBehaviour
                 RectTransform rectTransform = image.GetComponent<RectTransform>();
 
                 // rectTransform.rect를 사용하여 실제 크기를 가져옵니다.
-                float width = rectTransform.rect.width;
-                float height = rectTransform.rect.height;
-                width = width * (PIXEL_WIDTH / PIXEL_FACEIMAGE_WIDTH);
-                height = height * (PIXEL_HEIGHT / PIXEL_FACEIMAGE_HEIGHT);
+                float originalWidth = rectTransform.rect.width;
+                float originalHeight = rectTransform.rect.height;
+
+                float scaledWidth = originalWidth * (PIXEL_WIDTH / PIXEL_FACEIMAGE_WIDTH);
+                float scaledHeight = originalHeight * (PIXEL_HEIGHT / PIXEL_FACEIMAGE_HEIGHT);
 
                 Vector2 pivot = rectTransform.pivot;
                 Vector2 anchorPos = rectTransform.anchoredPosition;
@@ -79,39 +80,29 @@ public class TextureCombine : MonoBehaviour
 
                 // 앵커 포인트와 피벗을 고려한 좌표 변환
                 Vector2 adjustedPos = new Vector2(
-                    anchorPos.x - (width * pivot.x),
-                    anchorPos.y - (height * pivot.y)
+                anchorPos.x - (originalWidth * pivot.x) + originalWidth - (scaledWidth / 2),
+                anchorPos.y - (originalHeight * pivot.y) + originalHeight - (scaledHeight / 2)
                 );
 
-                float xOffset = (adjustedPos.x + PIXEL_FACEIMAGE_WIDTH / 2) / PIXEL_FACEIMAGE_WIDTH * PIXEL_WIDTH;
-                float yOffset = (adjustedPos.y + PIXEL_FACEIMAGE_HEIGHT / 2) / PIXEL_FACEIMAGE_HEIGHT * PIXEL_HEIGHT;
+                float xOffset = scaledWidth / 2 + ((adjustedPos.x + PIXEL_FACEIMAGE_WIDTH / 2) / PIXEL_FACEIMAGE_WIDTH * PIXEL_WIDTH);
+                float yOffset = scaledHeight / 2 + ((adjustedPos.y + PIXEL_FACEIMAGE_HEIGHT / 2) / PIXEL_FACEIMAGE_HEIGHT * PIXEL_HEIGHT);
 
-                /////////////////////////////////////
-                Debug.Log("x, y Offset");
-                Debug.Log(xOffset);
-                Debug.Log(yOffset);
 
                 // 자식 이미지 복사
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < scaledWidth; x++)
                 {
-                    for (int y = 0; y < height; y++)
+                    for (int y = 0; y < scaledHeight; y++)
                     {
                         int targetX = Mathf.FloorToInt(xOffset + x);
                         int targetY = Mathf.FloorToInt(yOffset + y);
 
-                        Debug.Log("Mathf.FloorToInt(xOffset + x, y);");
-                        Debug.Log(targetX);
-                        Debug.Log(targetY);
-
                         if (targetX >= 0 && targetX < combinedTexture.width && targetY >= 0 && targetY < combinedTexture.height)
                         {
-                            Color pixelColor = childTexture.GetPixelBilinear((float)x / width, (float)y / height);
+                            Color pixelColor = childTexture.GetPixelBilinear((float)x / scaledWidth, (float)y / scaledHeight);
 
                             // Check if the pixel is transparent; skip if it is
                             if (pixelColor.a < 0.01f) // Consider pixels with very low alpha as transparent
                                 continue;
-                            /////////////////////////////////////////////////////////
-                            Debug.Log(pixelColor); // Optional: log the pixel color value
                             combinedTexture.SetPixel(targetX, targetY, pixelColor);
                         }
                     }

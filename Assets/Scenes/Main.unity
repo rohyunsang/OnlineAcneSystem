@@ -952,7 +952,6 @@ MonoBehaviour:
   imagesParent: {fileID: 6269189566511882104}
   PIXEL_WIDTH: 2136
   PIXEL_HEIGHT: 3216
-  PIXEL_FACEIMAGE_WIDTH: 715
 --- !u!1 &766074289
 GameObject:
   m_ObjectHideFlags: 0
