@@ -146,7 +146,12 @@ public class GoogleDriveManager : MonoBehaviour
             fileNameText.text = file.Name;
             fileObject.name = file.Name;
 
-            fileObject.GetComponent<Button>().onClick.AddListener(() => UIManager.Instance.ActivateImagesWithName(fileObject.name));
+            fileObject.GetComponent<Button>().onClick.AddListener(() => 
+                UIManager.Instance.ActivateImagesWithName(fileObject.name));
+
+
+            fileObject.GetComponent<Button>().onClick.AddListener(() => 
+                UIManager.Instance.PassSubFileName(fileObject.name));   
         }
         StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));   // Sub Folder들의 이름을 안다음에 실행.
     }
@@ -254,6 +259,10 @@ public class GoogleDriveManager : MonoBehaviour
         selectedFolderName = folderName;
         UIManager.Instance.checkPasswordInfo.SetActive(true);
         UIManager.Instance.selectedFolderNameText.text = "선택된 폴더 이름 :  " + selectedFolderName;
+
+        // PictureInfoManager 에게도 정보 전달. 
+        PortraitInfoManager.Instance.selectedFolder = folderName;
+
     }
 
     public void RefreshToken()  // 구글 다시 인증 하기 

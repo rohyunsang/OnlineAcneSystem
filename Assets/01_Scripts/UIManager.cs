@@ -101,6 +101,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void PassSubFileName(string fileObjectName)
+    {
+        PortraitInfoManager.Instance.selectedSubFolder = fileObjectName;
+    }
+
     #endregion
 }
 
