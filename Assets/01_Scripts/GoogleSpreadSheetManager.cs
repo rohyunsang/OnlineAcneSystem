@@ -45,9 +45,8 @@ public class GoogleSpreadSheetManager : MonoBehaviour
         string data = www.downloadHandler.text;
         print(data);
         ParseUserData(data);
-
-
     }
+
     private void ParseUserData(string data)
     {
         string[] lines = data.Split('\n');

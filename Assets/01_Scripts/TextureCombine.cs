@@ -25,10 +25,8 @@ public class TextureCombine : MonoBehaviour
         // faceImage의 텍스처 가져오기
         Texture2D faceTexture = faceImage.texture as Texture2D;
 
-        //////////////////////////////////////////////////////////
-        Debug.Log("faceTexture WithHeight");
-        Debug.Log(faceTexture.width);   // 2136
-        Debug.Log(faceTexture.height);  // 3216 
+        PIXEL_WIDTH = faceTexture.width;
+        PIXEL_HEIGHT = faceTexture.height;
 
         if (faceTexture == null)
         {
@@ -38,11 +36,6 @@ public class TextureCombine : MonoBehaviour
 
         // faceImage 크기에 맞는 새로운 텍스처 생성
         combinedTexture = new Texture2D((int)PIXEL_WIDTH, (int)PIXEL_HEIGHT, TextureFormat.RGBA32, false);
-
-        //////////////////////////////////////////////////////////
-        Debug.Log("combinedTexture WithHeight");
-        Debug.Log(combinedTexture.width);   // 2136
-        Debug.Log(combinedTexture.height);  // 3216
 
         // faceTexture 복사
         for (int x = 0; x < faceTexture.width; x++)
