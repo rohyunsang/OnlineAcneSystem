@@ -11,9 +11,6 @@ public class GoogleDriveManager : MonoBehaviour
 {
     public static GoogleDriveManager Instance { get; private set; }  // Singleton instance
 
-    public Texture2D image;   // upload test image 
-
-    public Button uploadButton;
     public Button cloudFolderLoadButton;
     public Button selectedFolderDownloadButton;
     
@@ -44,16 +41,83 @@ public class GoogleDriveManager : MonoBehaviour
 
     void Start()
     {
-        //uploadButton.onClick.AddListener(HandlerUploadButton);
         cloudFolderLoadButton.onClick.AddListener(HandlerListAllFoldersButton);
-        //selectedFolderDownloadButton.onClick.AddListener(HandlerImageDownload);
     }
+    #region ImageUpload
 
-    public void HandlerUploadButton()
+    public void HandlerUploadImage(Texture2D image)
     {
-        StartCoroutine(UploadButton());
+        StartCoroutine(UploadImage(image));
+    }
+    public IEnumerator UploadImage(Texture2D image)
+    {
+        string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result";   // 결과 폴더는 _result 붙여줌 
+        string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
+        string fullPath = $"{selectedFolder}/{selectedSubFolder}";
+
+        // Ensure the folder path exists
+        yield return StartCoroutine(EnsureFolderPathExists(fullPath));
+
+        var content = image.EncodeToJPG();
+        var file = new UnityGoogleDrive.Data.File()
+        {
+            Name = PortraitInfoManager.Instance.currentPortraitName,
+            Content = content,
+            Parents = new List<string> {
+            folderNameToIdMap[selectedFolder],
+            folderNameToIdMap[selectedSubFolder]
+        }
+        };
+
+        var request = GoogleDriveFiles.Create(file);
+        request.Fields = new List<string> { "id" };
+        yield return request.Send();
+        Debug.Log(request.IsError ? $"Error: {request.Error}" : $"File uploaded: ID = {request.ResponseData.Id}");
     }
 
+    private IEnumerator EnsureFolderPathExists(string fullPath)
+    {
+        string[] folders = fullPath.Split('/');
+        string currentParentId = "root"; // Assuming top-level folder creation in the root
+
+        foreach (var folderName in folders)
+        {
+            string folderId;
+            if (!folderNameToIdMap.TryGetValue(folderName, out folderId))
+            {
+                // Create folder if not found
+                yield return StartCoroutine(CreateFolder(folderName, currentParentId));
+                folderNameToIdMap[folderName] = folderId;
+            }
+            currentParentId = folderId; // Update parent ID for next iteration
+        }
+    }
+
+    private IEnumerator CreateFolder(string folderName, string parentId)
+    {
+        var fileMetadata = new UnityGoogleDrive.Data.File()
+        {
+            Name = folderName,
+            MimeType = "application/vnd.google-apps.folder",
+            Parents = new List<string> { parentId }
+        };
+
+        var createRequest = GoogleDriveFiles.Create(fileMetadata);
+        yield return createRequest.Send();
+
+        if (createRequest.IsError)
+        {
+            Debug.LogError($"Failed to create folder '{folderName}': {createRequest.Error}");
+            yield break;
+        }
+
+        Debug.Log($"Created folder '{folderName}' with ID: {createRequest.ResponseData.Id}");
+        yield return createRequest.ResponseData.Id;
+    }
+
+    #endregion
+
+    #region ImageDownload
     public void HandlerListAllFoldersButton()
     {
         StartCoroutine(RootSubFolders());
@@ -64,18 +128,7 @@ public class GoogleDriveManager : MonoBehaviour
         StartCoroutine(SelectedSubFolders());
     }
 
-    public IEnumerator UploadButton()
-    {
-        var content = image.EncodeToPNG();
-        var file = new UnityGoogleDrive.Data.File() 
-            { Name = "testTestImage", Content = content };
-        var request = GoogleDriveFiles.Create(file);
-        request.Fields = new List<string> { "id" };
-        yield return request.Send();
-        print(request.IsError);
-        print(request.RequestData.Content);
-        print(request.RequestData.Id);
-    }
+    
 
     public IEnumerator RootSubFolders()   // Root Folder 안에 있는 폴더들 
     {
@@ -251,7 +304,7 @@ public class GoogleDriveManager : MonoBehaviour
                 imageObject.SetActive(false);
         }
     }
-
+    #endregion
 
 
     public void SelectedFileNameListener(string folderName)
@@ -269,5 +322,6 @@ public class GoogleDriveManager : MonoBehaviour
     {
         AuthController.RefreshAccessToken();
     }
+
 }
 
