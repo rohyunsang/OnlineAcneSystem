@@ -105,9 +105,11 @@ public class TextureCombine : MonoBehaviour
 
         // 변경 사항을 적용합니다.
         combinedTexture.Apply();
-        SaveJPG();
+        GoogleDriveManager.Instance.HandlerUploadImage(combinedTexture);
     }
 
+    
+    // Test On DeskTop  
     public void SaveJPG()
     {
         byte[] bytes = combinedTexture.EncodeToJPG();
