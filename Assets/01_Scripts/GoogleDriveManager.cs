@@ -43,7 +43,9 @@ public class GoogleDriveManager : MonoBehaviour
     {
         cloudFolderLoadButton.onClick.AddListener(HandlerListAllFoldersButton);
     }
-    #region ImageUpload
+
+    
+     #region ImageUpload
 
     public void HandlerUploadImage(Texture2D image)
     {
@@ -51,7 +53,7 @@ public class GoogleDriveManager : MonoBehaviour
     }
     public IEnumerator UploadImage(Texture2D image)
     {
-        string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result";   // 결과 폴더는 _result 붙여줌 
+        string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result";   // Append '_result' to selected folder
         string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
         string fullPath = $"{selectedFolder}/{selectedSubFolder}";
 
@@ -63,10 +65,7 @@ public class GoogleDriveManager : MonoBehaviour
         {
             Name = PortraitInfoManager.Instance.currentPortraitName,
             Content = content,
-            Parents = new List<string> {
-            folderNameToIdMap[selectedFolder],
-            folderNameToIdMap[selectedSubFolder]
-        }
+            Parents = new List<string> { folderNameToIdMap[selectedSubFolder] }  // Only use the subfolder as the parent
         };
 
         var request = GoogleDriveFiles.Create(file);
@@ -78,22 +77,24 @@ public class GoogleDriveManager : MonoBehaviour
     private IEnumerator EnsureFolderPathExists(string fullPath)
     {
         string[] folders = fullPath.Split('/');
-        string currentParentId = "root"; // Assuming top-level folder creation in the root
+        string currentParentId = "root";  // Start with the root ID.
 
         foreach (var folderName in folders)
         {
             string folderId;
             if (!folderNameToIdMap.TryGetValue(folderName, out folderId))
             {
-                // Create folder if not found
-                yield return StartCoroutine(CreateFolder(folderName, currentParentId));
-                folderNameToIdMap[folderName] = folderId;
+                // Create folder if not found and update map
+                yield return StartCoroutine(CreateFolder(folderName, currentParentId, (newFolderId) => {
+                    folderNameToIdMap[folderName] = newFolderId; // Update the map with the new ID
+                    folderId = newFolderId;  // Update folderId with newFolderId for this scope
+                }));
             }
-            currentParentId = folderId; // Update parent ID for next iteration
+            currentParentId = folderId; // Update parent ID for the next folder creation
         }
     }
 
-    private IEnumerator CreateFolder(string folderName, string parentId)
+    private IEnumerator CreateFolder(string folderName, string parentId, Action<string> onUpdateFolderId)
     {
         var fileMetadata = new UnityGoogleDrive.Data.File()
         {
@@ -111,11 +112,15 @@ public class GoogleDriveManager : MonoBehaviour
             yield break;
         }
 
+        // Log the creation and update the ID
         Debug.Log($"Created folder '{folderName}' with ID: {createRequest.ResponseData.Id}");
-        yield return createRequest.ResponseData.Id;
+        onUpdateFolderId(createRequest.ResponseData.Id);  // Use the callback to update the folder ID
     }
 
+
     #endregion
+
+
 
     #region ImageDownload
     public void HandlerListAllFoldersButton()
@@ -127,9 +132,6 @@ public class GoogleDriveManager : MonoBehaviour
     {
         StartCoroutine(SelectedSubFolders());
     }
-
-    
-
     public IEnumerator RootSubFolders()   // Root Folder 안에 있는 폴더들 
     {
         var listRequest = GoogleDriveFiles.List();

@@ -945,9 +945,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 761215514}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 479fc38304642d44ba7e416d7e759c7d, type: 3}
+  m_Script: {fileID: 11500000, guid: fffbe95694a436e46adb70fc5d2fd6b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectedFolder: 
+  selectedSubFolder: 
+  currentPortraitName: 
 --- !u!1 &763723687
 GameObject:
   m_ObjectHideFlags: 0
@@ -2432,8 +2435,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33b62b6768fec984f8109eedc28ba68e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  image: {fileID: 2800000, guid: f19fe0b083be1a9409a2cea3f9b4cbea, type: 3}
-  uploadButton: {fileID: 0}
   cloudFolderLoadButton: {fileID: 6269189566350099464}
   selectedFolderDownloadButton: {fileID: 0}
   filePrefab: {fileID: 3676952661519129253, guid: c5c5b55810f3d3940b02c619bfc5e4d4, type: 3}
