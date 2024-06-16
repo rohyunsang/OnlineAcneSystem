@@ -25,6 +25,12 @@ public class GoogleDriveManager : MonoBehaviour
 
     public Dictionary<string, Texture2D> textureDictionary = new Dictionary<string, Texture2D>();  // Image textures
 
+
+    // Stop Coruntine
+    private Coroutine selectedSubFoldersCoroutine;
+    private Coroutine downloadImagesTopFolderCoroutine;
+    private Coroutine downloadJpgImagesCoroutine;
+
     void Awake()
     {
         if (Instance == null)
@@ -50,6 +56,8 @@ public class GoogleDriveManager : MonoBehaviour
     public void HandlerUploadImage(Texture2D image)
     {
         StartCoroutine(UploadImage(image));
+
+        UIManager.Instance.ActivateCheckImage();
     }
     public IEnumerator UploadImage(Texture2D image)
     {
@@ -82,39 +90,59 @@ public class GoogleDriveManager : MonoBehaviour
         foreach (var folderName in folders)
         {
             string folderId;
-            if (!folderNameToIdMap.TryGetValue(folderName, out folderId))
+            if (folderNameToIdMap.TryGetValue(folderName, out folderId))
             {
-                // Create folder if not found and update map
-                yield return StartCoroutine(CreateFolder(folderName, currentParentId, (newFolderId) => {
-                    folderNameToIdMap[folderName] = newFolderId; // Update the map with the new ID
-                    folderId = newFolderId;  // Update folderId with newFolderId for this scope
+                // Folder ID found in map, use it as the current parent ID for the next iteration
+                currentParentId = folderId;
+            }
+            else
+            {
+                // Folder ID not in map, check if folder exists on Google Drive
+                yield return StartCoroutine(CheckAndCreateFolder(folderName, currentParentId, (newFolderId) => {
+                    folderId = newFolderId;  // Update local folder ID with new or found folder ID
+                    folderNameToIdMap[folderName] = newFolderId;  // Update the map with the new or found folder ID
+                    currentParentId = folderId;  // Update currentParentId for the next iteration
                 }));
             }
-            currentParentId = folderId; // Update parent ID for the next folder creation
         }
     }
 
-    private IEnumerator CreateFolder(string folderName, string parentId, Action<string> onUpdateFolderId)
+    private IEnumerator CheckAndCreateFolder(string folderName, string parentId, Action<string> onUpdateFolderId)
     {
-        var fileMetadata = new UnityGoogleDrive.Data.File()
-        {
-            Name = folderName,
-            MimeType = "application/vnd.google-apps.folder",
-            Parents = new List<string> { parentId }
-        };
+        // First check if the folder exists in Google Drive
+        var listRequest = GoogleDriveFiles.List();
+        listRequest.Fields = new List<string> { "files(id)" };
+        listRequest.Q = $"name = '{folderName}' and '{parentId}' in parents and mimeType = 'application/vnd.google-apps.folder'";
+        yield return listRequest.Send();
 
-        var createRequest = GoogleDriveFiles.Create(fileMetadata);
-        yield return createRequest.Send();
-
-        if (createRequest.IsError)
+        if (!listRequest.IsError && listRequest.ResponseData.Files.Count > 0)
         {
-            Debug.LogError($"Failed to create folder '{folderName}': {createRequest.Error}");
-            yield break;
+            // Folder exists, use the existing folder ID
+            onUpdateFolderId(listRequest.ResponseData.Files[0].Id);
         }
+        else
+        {
+            // Folder does not exist, create it
+            var fileMetadata = new UnityGoogleDrive.Data.File()
+            {
+                Name = folderName,
+                MimeType = "application/vnd.google-apps.folder",
+                Parents = new List<string> { parentId }
+            };
 
-        // Log the creation and update the ID
-        Debug.Log($"Created folder '{folderName}' with ID: {createRequest.ResponseData.Id}");
-        onUpdateFolderId(createRequest.ResponseData.Id);  // Use the callback to update the folder ID
+            var createRequest = GoogleDriveFiles.Create(fileMetadata);
+            yield return createRequest.Send();
+
+            if (createRequest.IsError)
+            {
+                Debug.LogError($"Failed to create folder '{folderName}': {createRequest.Error}");
+                yield break;
+            }
+
+            // Log the creation and update the ID
+            Debug.Log($"Created folder '{folderName}' with ID: {createRequest.ResponseData.Id}");
+            onUpdateFolderId(createRequest.ResponseData.Id);  // Use the callback to update the folder ID
+        }
     }
 
 
@@ -308,6 +336,14 @@ public class GoogleDriveManager : MonoBehaviour
                 imageObject.SetActive(false);
         }
     }
+
+    public void StopImageDownload()
+    {
+        StopCoroutine("SelectedSubFolders");
+        StopCoroutine("DownloadImagesInTopFolder");
+        StopCoroutine("DownloadJpgImagesInFolder");
+    }
+
     #endregion
 
 
