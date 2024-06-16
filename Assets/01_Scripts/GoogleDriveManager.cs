@@ -156,6 +156,8 @@ public class GoogleDriveManager : MonoBehaviour
             Debug.Log($"Folder ID: {file.Id}, Folder Name: {file.Name}");
             folderNameToIdMap[file.Name] = file.Id;  // Save folder ID
 
+            if (file.Name.Contains("result")) continue;
+
             GameObject fileObject = Instantiate(filePrefab, UIManager.Instance.folderParent);
             Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
             fileNameText.text = file.Name;
