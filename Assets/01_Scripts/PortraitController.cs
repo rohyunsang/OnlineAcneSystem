@@ -16,7 +16,10 @@ public class PortraitController : MonoBehaviour
     private void OnClickPortrait()
     {
         UIManager.Instance.faceImage.GetComponent<RawImage>().texture = GoogleDriveManager.Instance.textureDictionary[gameObject.name];
+        UIManager.Instance.DeleteAllPimples();
+
         PortraitInfoManager.Instance.currentPortraitName = gameObject.name;
     }
+
 
 }

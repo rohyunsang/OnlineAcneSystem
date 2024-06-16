@@ -49,6 +49,8 @@ public class TextureCombine : MonoBehaviour
         // 자식 오브젝트들의 이미지를 병합
         foreach (Transform child in imagesParent.transform)
         {
+            if (child.gameObject.name.Contains("Circle")) continue;
+
             Image image = child.GetComponent<Image>();
             if (image != null)
             {

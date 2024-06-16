@@ -12,7 +12,6 @@ public class GoogleDriveManager : MonoBehaviour
     public static GoogleDriveManager Instance { get; private set; }  // Singleton instance
 
     public Button cloudFolderLoadButton;
-    public Button selectedFolderDownloadButton;
     
     public GameObject filePrefab;
     public GameObject imagePrefab;
@@ -27,9 +26,9 @@ public class GoogleDriveManager : MonoBehaviour
 
 
     // Stop Coruntine
-    private Coroutine selectedSubFoldersCoroutine;
-    private Coroutine downloadImagesTopFolderCoroutine;
-    private Coroutine downloadJpgImagesCoroutine;
+    private Coroutine coroutineSelectedSubFolders;
+    private Coroutine coroutineDownloadImagesTopFolder;
+    private Coroutine coroutineDownloadJpgImages;
 
     void Awake()
     {
@@ -153,13 +152,16 @@ public class GoogleDriveManager : MonoBehaviour
     #region ImageDownload
     public void HandlerListAllFoldersButton()
     {
-        StartCoroutine(RootSubFolders());
+        if (coroutineSelectedSubFolders != null) StopCoroutine(coroutineSelectedSubFolders);
+        coroutineSelectedSubFolders = StartCoroutine(RootSubFolders());
     }
 
     public void HandlerImageDownload()
     {
-        StartCoroutine(SelectedSubFolders());
+        if (coroutineDownloadImagesTopFolder != null) StopCoroutine(coroutineDownloadImagesTopFolder);
+        coroutineDownloadImagesTopFolder = StartCoroutine(DownloadImagesInTopFolder(selectedFolderName));
     }
+
     public IEnumerator RootSubFolders()   // Root Folder 안에 있는 폴더들 
     {
         var listRequest = GoogleDriveFiles.List();
@@ -339,9 +341,9 @@ public class GoogleDriveManager : MonoBehaviour
 
     public void StopImageDownload()
     {
-        StopCoroutine("SelectedSubFolders");
-        StopCoroutine("DownloadImagesInTopFolder");
-        StopCoroutine("DownloadJpgImagesInFolder");
+        if (coroutineSelectedSubFolders != null) StopCoroutine(coroutineSelectedSubFolders);
+        if (coroutineDownloadImagesTopFolder != null) StopCoroutine(coroutineDownloadImagesTopFolder);
+        if (coroutineDownloadJpgImages != null) StopCoroutine(coroutineDownloadJpgImages);
     }
 
     #endregion

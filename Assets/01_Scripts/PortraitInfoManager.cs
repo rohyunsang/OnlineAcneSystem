@@ -27,7 +27,7 @@ public class PortraitInfoManager : MonoBehaviour
     }
     #endregion
 
-    private void Init()
+    public void Init()
     {
         selectedSubFolder = "01";
     }
