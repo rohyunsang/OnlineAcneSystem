@@ -52,13 +52,13 @@ public class GoogleDriveManager : MonoBehaviour
     
      #region ImageUpload
 
-    public void HandlerUploadImage(Texture2D image)
+    public void HandlerUploadImage(Texture2D image, string jsonString)
     {
-        StartCoroutine(UploadImage(image));
-
+        StartCoroutine(UploadImage(image, jsonString));
+        
         UIManager.Instance.ActivateCheckImage();
     }
-    public IEnumerator UploadImage(Texture2D image)
+    public IEnumerator UploadImage(Texture2D image, string jsonString)
     {
         string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result";   // Append '_result' to selected folder
         string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
@@ -73,6 +73,31 @@ public class GoogleDriveManager : MonoBehaviour
             Name = PortraitInfoManager.Instance.currentPortraitName,
             Content = content,
             Parents = new List<string> { folderNameToIdMap[selectedSubFolder] }  // Only use the subfolder as the parent
+        };
+
+        var request = GoogleDriveFiles.Create(file);
+        request.Fields = new List<string> { "id" };
+        yield return request.Send();
+        Debug.Log(request.IsError ? $"Error: {request.Error}" : $"File uploaded: ID = {request.ResponseData.Id}");
+
+        StartCoroutine(UploadJson(jsonString));
+    }
+    public IEnumerator UploadJson(string jsonString)
+    {
+        string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result"; // Same folder as the image
+        string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
+        string fullPath = $"{selectedFolder}/{selectedSubFolder}";
+
+        // Ensure the folder path exists
+        yield return StartCoroutine(EnsureFolderPathExists(fullPath));
+
+        var content = System.Text.Encoding.UTF8.GetBytes(jsonString);
+        var file = new UnityGoogleDrive.Data.File()
+        {
+            Name = PortraitInfoManager.Instance.currentPortraitName.Replace(".jpg",".json"),
+            Content = content,
+            Parents = new List<string> { folderNameToIdMap[selectedSubFolder] }, // Same parent folder as the image
+            MimeType = "application/json"  // Set the MIME type for JSON
         };
 
         var request = GoogleDriveFiles.Create(file);

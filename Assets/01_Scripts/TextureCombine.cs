@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Xml;
 using UnityEngine;
 using UnityEngine.UI;
+
 
 public class TextureCombine : MonoBehaviour
 {
@@ -14,6 +16,8 @@ public class TextureCombine : MonoBehaviour
     public float PIXEL_HEIGHT = 3216f;
     private const float PIXEL_FACEIMAGE_WIDTH = 715f;
     private const float PIXEL_FACEIMAGE_HEIGHT = 1080f;
+
+    private ChildObjectList childObjectList = new ChildObjectList();  // 
 
     private void Start()
     {
@@ -67,6 +71,16 @@ public class TextureCombine : MonoBehaviour
                 Vector2 pivot = rectTransform.pivot;
                 Vector2 anchorPos = rectTransform.anchoredPosition;
 
+
+#region JSON
+                // Calculate the position considering the pivot and the anchor point
+                float centeredX = anchorPos.x - (pivot.x * scaledWidth) + (scaledWidth / 2);
+                float centeredY = anchorPos.y - (pivot.y * scaledHeight) + (scaledHeight / 2);
+
+                // Convert position relative to the top-left corner of the main texture
+                float xCenter = (centeredX + PIXEL_FACEIMAGE_WIDTH / 2) * (PIXEL_WIDTH / PIXEL_FACEIMAGE_WIDTH);
+                float yCenter = (centeredY + PIXEL_FACEIMAGE_HEIGHT / 2) * (PIXEL_HEIGHT / PIXEL_FACEIMAGE_HEIGHT);
+#endregion
                 if (childTexture == null)
                 {
                     Debug.LogError($"Texture for {image.name} is null.");
@@ -81,6 +95,8 @@ public class TextureCombine : MonoBehaviour
 
                 float xOffset = scaledWidth / 2 + ((adjustedPos.x + PIXEL_FACEIMAGE_WIDTH / 2) / PIXEL_FACEIMAGE_WIDTH * PIXEL_WIDTH);
                 float yOffset = scaledHeight / 2 + ((adjustedPos.y + PIXEL_FACEIMAGE_HEIGHT / 2) / PIXEL_FACEIMAGE_HEIGHT * PIXEL_HEIGHT);
+
+
 
 
                 // 자식 이미지 복사
@@ -102,30 +118,33 @@ public class TextureCombine : MonoBehaviour
                         }
                     }
                 }
+
+                ChildObjectData childData = new ChildObjectData
+                {
+                    name = child.name,
+                    position = new Vector2(xCenter, yCenter)
+                };
+                childObjectList.pimples.Add(childData);
             }
         }
 
         // 변경 사항을 적용합니다.
         combinedTexture.Apply();
-        GoogleDriveManager.Instance.HandlerUploadImage(combinedTexture);
+        string json = JsonUtility.ToJson(childObjectList, true);
+        GoogleDriveManager.Instance.HandlerUploadImage(combinedTexture, json);
+        childObjectList.pimples.Clear();
     }
 
-    
-    // Test On DeskTop  
-    public void SaveJPG()
+    [System.Serializable]
+    public class ChildObjectData
     {
-        byte[] bytes = combinedTexture.EncodeToJPG();
-        // 텍스처를 JPG 바이트 배열로 인코딩합니다.
+        public string name;
+        public Vector2 position;
+    }
 
-        string directoryPath = Path.Combine(desktopPath, "결과이미지");
-        string filePath = Path.Combine(directoryPath, "MergedImage.jpg");
-
-        // 디렉토리가 없으면 생성합니다.
-        Directory.CreateDirectory(directoryPath);
-
-        // 바이트 배열을 파일로 저장합니다.
-        File.WriteAllBytes(filePath, bytes);
-
-        Debug.Log($"Image saved to: {filePath}");
+    [System.Serializable]
+    public class ChildObjectList
+    {
+        public List<ChildObjectData> pimples = new List<ChildObjectData>();
     }
 }
