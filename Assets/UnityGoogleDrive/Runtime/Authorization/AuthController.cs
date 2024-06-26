@@ -38,6 +38,7 @@ namespace UnityGoogleDrive
 
         public static void RefreshAccessToken ()
         {
+            IsRefreshingAccessToken = false;
             if (IsRefreshingAccessToken) return;
             IsRefreshingAccessToken = true;
 

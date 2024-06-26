@@ -33,10 +33,9 @@ public class UIManager : MonoBehaviour
     [Header("InitPanel")]
     public Transform folderParent;  // InitPanel - ScrollView - Content
     public Text selectedFolderNameText;   // InitPanel - CheckPasswordInfo
-    public GameObject checkPasswordInfo;
-    public GameObject failPasswordInfo;
-    public Text passwordInputFieldText;
-    public Button checkPasswordButton;
+    public GameObject checkFolderInfo;
+    public Button checkFolderButton;
+    public GameObject reLoginInfo;
 
     [Header("MainPanel")]
     public Transform subFolderScrollView;  // ScrollView - content 
@@ -51,13 +50,25 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        checkPasswordButton.onClick.AddListener(CheckPassword);
+        checkFolderButton.onClick.AddListener(SelectedFolderDownload);
         goInitPanelButton.onClick.AddListener(Init);
         goInitPanelButton.onClick.AddListener(InitSceneObject);
-
     }
 
     #region InitPanel
+
+    public void ReLoginInfoSetActivate()
+    {
+        reLoginInfo.SetActive(true);
+    }
+
+    public void SelectedFolderDownload()
+    {
+        initPanel.SetActive(false);
+        StartCoroutine(GoogleDriveManager.Instance.SelectedSubFolders());
+    }
+
+    /*
     public void CheckPassword()
     {
         bool flag = false;
@@ -93,6 +104,8 @@ public class UIManager : MonoBehaviour
         }
 
     }
+     
+     */
     #endregion
 
     #region MainPanel
@@ -196,9 +209,8 @@ public class UIManager : MonoBehaviour
         GoogleDriveManager.Instance.folderNameToIdMap.Clear();
         GoogleDriveManager.Instance.textureDictionary.Clear();
 
-        checkPasswordInfo.SetActive(false);
+        checkFolderInfo.SetActive(false);
 
-        passwordInputFieldText.text = "";
 
         initPanel.SetActive(true);
         settingPanel.SetActive(false);

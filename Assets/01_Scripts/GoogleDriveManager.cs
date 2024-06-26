@@ -7,7 +7,6 @@ using Image = UnityEngine.UI.Image;
 using System;
 using System.Linq;
 
-
 public class GoogleDriveManager : MonoBehaviour
 {
     public static GoogleDriveManager Instance { get; private set; }  // Singleton instance
@@ -199,6 +198,8 @@ public class GoogleDriveManager : MonoBehaviour
         if (listRequest.IsError)
         {
             Debug.LogError($"Error: {listRequest.Error}");
+
+            UIManager.Instance.ReLoginInfoSetActivate();
             yield break;
         }
 
@@ -381,7 +382,7 @@ public class GoogleDriveManager : MonoBehaviour
     public void SelectedFileNameListener(string folderName)
     {
         selectedFolderName = folderName;
-        UIManager.Instance.checkPasswordInfo.SetActive(true);
+        UIManager.Instance.checkFolderInfo.SetActive(true);
         UIManager.Instance.selectedFolderNameText.text = "선택된 폴더 이름 :  " + selectedFolderName;
 
         // PictureInfoManager 에게도 정보 전달. 
@@ -395,4 +396,5 @@ public class GoogleDriveManager : MonoBehaviour
     }
 
 }
+
 

@@ -239,7 +239,11 @@ namespace UnityGoogleDrive
 
             HandleResponseData(WebRequest.downloadHandler);
 
-            if (IsError) Debug.LogError("UnityGoogleDrive: " + Error);
+            if (IsError)
+            {
+                Debug.LogError("UnityGoogleDrive: " + Error);
+                AuthController.RefreshAccessToken();
+            }
 
             if (AutoCompleteOnDone) CompleteRequest();
         }
