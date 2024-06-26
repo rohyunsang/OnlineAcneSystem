@@ -5,6 +5,7 @@ using UnityGoogleDrive;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using System;
+using System.Linq;
 
 
 public class GoogleDriveManager : MonoBehaviour
@@ -326,7 +327,10 @@ public class GoogleDriveManager : MonoBehaviour
             yield break;
         }
 
-        foreach (var file in listRequest.ResponseData.Files)
+        var files = listRequest.ResponseData.Files.ToList();
+        files.Reverse();
+
+        foreach (var file in files)
         {
             if (!file.Name.EndsWith(".jpg")) continue; // Skip non-JPG files
 
