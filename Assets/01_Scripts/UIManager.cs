@@ -41,6 +41,8 @@ public class UIManager : MonoBehaviour
     public Transform subFolderScrollView;  // ScrollView - content 
     public Transform portraitScrollView;   // ScrollView - content 
     public RawImage faceImage;      // 작업 캔버스 이미지 
+    public RawImage popUpImage; // 
+    public Button popUpButton; // 
 
     [Header("SettingPanel")]
     public Button goInitPanelButton;
@@ -53,6 +55,8 @@ public class UIManager : MonoBehaviour
         checkFolderButton.onClick.AddListener(SelectedFolderDownload);
         goInitPanelButton.onClick.AddListener(Init);
         goInitPanelButton.onClick.AddListener(InitSceneObject);
+
+        popUpButton.onClick.AddListener(MakePopUp);
     }
 
     #region InitPanel
@@ -151,6 +155,53 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void PortraitReLoader(Texture texture)
+    {
+        string currentPortraitName = PortraitInfoManager.Instance.currentPortraitName;  // 현재 포트레이트 이름 가져오기
+
+        // Ensure the texture is a Texture2D
+        Texture2D texture2D = texture as Texture2D;
+        if (texture2D == null)
+        {
+            Debug.LogError("Provided texture is not a Texture2D.");
+            return;
+        }
+
+        // Convert Texture2D to Sprite
+        Sprite newSprite = Sprite.Create(texture2D, new Rect(0.0f, 0.0f, texture2D.width, texture2D.height), new Vector2(0.5f, 0.5f));
+
+        // Search children of ScrollView
+        foreach (Transform child in portraitScrollView)
+        {
+            if (child.name == currentPortraitName)  // Find child that matches the current portrait name
+            {
+                Image imageComponent = child.gameObject.GetComponent<Image>();
+                if (imageComponent != null)
+                {
+                    imageComponent.sprite = newSprite;
+                }
+                else
+                {
+                    Debug.LogError("No Image component found on the GameObject.");
+                }
+
+                break;  // Exit loop once matched
+            }
+        }
+    }
+
+    public void ActivateOnOffPimples()
+    {
+        Transform faceImageTransform = faceImage.transform;
+        foreach(Transform child in faceImageTransform)
+        {
+            if (child.gameObject.name.Contains(PortraitInfoManager.Instance.currentPortraitName))
+                child.gameObject.SetActive(true);
+            else
+                child.gameObject.SetActive(false);
+        }
+    }
+
     public void DeleteAllPimples()
     {
         // faceImage의 Transform 컴포넌트를 가져옵니다.
@@ -171,6 +222,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void MakePopUp()
+    {
+        popUpImage.gameObject.SetActive(true);
+        // PortraitInfoManager에서 이름을 가져옴 . 
+        // 이미지 병합부터 진행해야함. 
+        //  
+    }
+
 
     #endregion
 
@@ -182,6 +241,8 @@ public class UIManager : MonoBehaviour
         ClearChildren(folderParent);
         ClearChildren(subFolderScrollView);
         ClearChildren(portraitScrollView);
+        // faceImage too
+        ClearChildren(faceImage.transform);
     }
 
     // Transform의 모든 자식 오브젝트를 삭제하는 메서드
