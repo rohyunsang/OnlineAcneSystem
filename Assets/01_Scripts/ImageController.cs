@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -107,10 +108,29 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
                     if (nameButton != null)
                     {
                         Text nameText = nameButton.GetChild(0).GetComponent<Text>();
+                        
                         if (nameText != null && statusImage != null)
                         {
-                            nameText.text = statusImage.name;
+                            string[] nameParts = statusImage.name.Split('_');
+
+                            // Check if the split operation resulted in any parts
+                            if (nameParts.Length > 0)
+                            {
+                                // Set the text to the first part before the '_'
+                                nameText.text = nameParts[0];
+                            }
                         }
+                    }
+
+                    Button addButton = statusButtonsInstance.transform.Find("AddButton").GetComponent<Button>();
+                    if(addButton != null && statusImage != null)
+                    {
+                        addButton.onClick.AddListener(() =>
+                        {
+                            // Call instance Button, parametrer list => mouse position 
+                            InstantiatePimpleListButtons(localPointerPosition);
+                            Destroy(statusButtonsInstance);
+                        });
                     }
 
                     // Add a listener to the Delete button to destroy the circle when clicked
@@ -134,38 +154,44 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
                 #region Instantiate Part
                 else
                 {
-                    GameObject statusImage = Instantiate(circlePrefab, faceImage); // 
-                    statusImage.GetComponent<RectTransform>().anchoredPosition = localPointerPosition;
-
-                    Vector2 originPosition = localPointerPosition;
-
-                    GameObject buttonsInstance = Instantiate(namingButtonPrefabs, backGround);
-                    buttonsInstance.GetComponent<RectTransform>().SetAsLastSibling();
-                    Vector2 convertedPosition = ConvertToBackgroundLocalCoordinates(localPointerPosition, faceImage, backGround);
-                    buttonsInstance.GetComponent<RectTransform>().anchoredPosition = convertedPosition + new Vector2(130f, 5f);
-
-                    foreach (Transform child in buttonsInstance.transform)
-                    {
-                        Button btn = child.GetComponent<Button>();
-                        if (btn != null)
-                        {
-                            // Clear previous listeners
-                            btn.onClick.RemoveAllListeners();
-
-                            btn.onClick.AddListener(() =>
-                            {
-                                string buttonText = btn.transform.GetChild(0).GetComponent<Text>().text;
-                                ChangeCircleShape(statusImage, buttonText, localPointerPosition, buttonsInstance);
-                                if(buttonsInstance != null) Destroy(buttonsInstance);
-                            });
-                        }
-                    }
+                    InstantiatePimpleListButtons(localPointerPosition);
                 }
                 #endregion
 
             }
         }
     }
+
+    private void InstantiatePimpleListButtons(Vector2 localPointerPosition)
+    {
+        GameObject statusImage = Instantiate(circlePrefab, faceImage); // 
+        statusImage.GetComponent<RectTransform>().anchoredPosition = localPointerPosition;
+
+        Vector2 originPosition = localPointerPosition;
+
+        GameObject buttonsInstance = Instantiate(namingButtonPrefabs, backGround);
+        buttonsInstance.GetComponent<RectTransform>().SetAsLastSibling();
+        Vector2 convertedPosition = ConvertToBackgroundLocalCoordinates(localPointerPosition, faceImage, backGround);
+        buttonsInstance.GetComponent<RectTransform>().anchoredPosition = convertedPosition + new Vector2(130f, 5f);
+
+        foreach (Transform child in buttonsInstance.transform)
+        {
+            Button btn = child.GetComponent<Button>();
+            if (btn != null)
+            {
+                // Clear previous listeners
+                btn.onClick.RemoveAllListeners();
+
+                btn.onClick.AddListener(() =>
+                {
+                    string buttonText = btn.transform.GetChild(0).GetComponent<Text>().text;
+                    ChangeCircleShape(statusImage, buttonText, localPointerPosition, buttonsInstance);
+                    if (buttonsInstance != null) Destroy(buttonsInstance);
+                });
+            }
+        }
+    }
+
     void ChangeCircleShape(GameObject tmpStatusImage, string newName, Vector2 originPosition, GameObject buttonsInstance)
     {
         Destroy(tmpStatusImage);
@@ -199,7 +225,8 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
             return;
         }
 
-        statusImage.name = newName;
+        statusImage.name = newName + "_" + PortraitInfoManager.Instance.currentPortraitName;
+
         statusImage.GetComponent<RectTransform>().anchoredPosition = originPosition;
     }
     bool IsCircleAtPosition(Vector2 position)
