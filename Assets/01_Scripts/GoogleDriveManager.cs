@@ -13,7 +13,8 @@ public class GoogleDriveManager : MonoBehaviour
 
     public Button cloudFolderLoadButton;
     
-    public GameObject filePrefab;
+    public GameObject filePrefabInit;
+    public GameObject filePrefabMain;
     public GameObject imagePrefab;
 
     //private List<string> folders = new List<string>();
@@ -215,7 +216,7 @@ public class GoogleDriveManager : MonoBehaviour
 
             if (file.Name.Contains("result")) continue;
 
-            GameObject fileObject = Instantiate(filePrefab, UIManager.Instance.folderParent);
+            GameObject fileObject = Instantiate(filePrefabInit, UIManager.Instance.folderParent);
             Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
             fileNameText.text = file.Name;
             fileObject.name = file.Name;
@@ -255,7 +256,7 @@ public class GoogleDriveManager : MonoBehaviour
             subFolders.Add(file.Name);
             Debug.Log(file.Name);
 
-            GameObject fileObject = Instantiate(filePrefab, UIManager.Instance.subFolderScrollView);
+            GameObject fileObject = Instantiate(filePrefabMain, UIManager.Instance.subFolderScrollView);
             Text fileNameText = fileObject.transform.Find("FileNameText").GetComponent<UnityEngine.UI.Text>();
             fileNameText.text = file.Name;
             fileObject.name = file.Name;
