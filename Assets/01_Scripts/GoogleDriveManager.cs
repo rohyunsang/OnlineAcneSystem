@@ -31,6 +31,9 @@ public class GoogleDriveManager : MonoBehaviour
     private Coroutine coroutineDownloadImagesTopFolder;
     private Coroutine coroutineDownloadJpgImages;
 
+    // Init Auth
+    private GoogleDriveSettings googleDriveSettings;
+
     void Awake()
     {
         if (Instance == null)
@@ -393,7 +396,14 @@ public class GoogleDriveManager : MonoBehaviour
 
     public void RefreshToken()  // 구글 다시 인증 하기 
     {
+        googleDriveSettings = GoogleDriveSettings.LoadFromResources();
+        if (googleDriveSettings == null)
+        {
+            Debug.LogError("Failed to load Google Drive Settings.");
+        }
+
         AuthController.RefreshAccessToken();
+        googleDriveSettings.DeleteCachedAuthTokens();
     }
 
 }
