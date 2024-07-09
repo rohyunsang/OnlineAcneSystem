@@ -99,7 +99,9 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
 
                     Vector2 convertedPosition = ConvertToBackgroundLocalCoordinates(localPointerPosition, faceImage, backGround);
                     statusButtonsInstance.GetComponent<RectTransform>().anchoredPosition = convertedPosition + new Vector2(130f, 5f);
-
+                    if (statusButtonsInstance.GetComponent<RectTransform>().anchoredPosition.y < -350f)
+                        statusButtonsInstance.GetComponent<RectTransform>().anchoredPosition = new Vector2(convertedPosition.x + 130f, -350f);
+                    
                     // Find the circle object at the specified position
                     GameObject statusImage = GetCircleAtPosition(localPointerPosition);
 
@@ -173,6 +175,9 @@ public class ImageController : MonoBehaviour, IDragHandler, IScrollHandler, IPoi
         buttonsInstance.GetComponent<RectTransform>().SetAsLastSibling();
         Vector2 convertedPosition = ConvertToBackgroundLocalCoordinates(localPointerPosition, faceImage, backGround);
         buttonsInstance.GetComponent<RectTransform>().anchoredPosition = convertedPosition + new Vector2(130f, 5f);
+
+        if (buttonsInstance.GetComponent<RectTransform>().anchoredPosition.y < -300f)
+            buttonsInstance.GetComponent<RectTransform>().anchoredPosition = new Vector2(localPointerPosition.x + 150f, -300f);
 
         foreach (Transform child in buttonsInstance.transform)
         {

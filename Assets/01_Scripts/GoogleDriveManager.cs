@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 public class GoogleDriveManager : MonoBehaviour
 {
@@ -68,13 +69,15 @@ public class GoogleDriveManager : MonoBehaviour
         string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
         string fullPath = $"{selectedFolder}/{selectedSubFolder}";
 
+        string fileName = PortraitInfoManager.Instance.currentPortraitName;
+
         // Ensure the folder path exists
         yield return StartCoroutine(EnsureFolderPathExists(fullPath));
 
         var content = image.EncodeToJPG();
         var file = new UnityGoogleDrive.Data.File()
         {
-            Name = PortraitInfoManager.Instance.currentPortraitName,
+            Name = fileName,
             Content = content,
             Parents = new List<string> { folderNameToIdMap[selectedSubFolder] }  // Only use the subfolder as the parent
         };
@@ -84,13 +87,13 @@ public class GoogleDriveManager : MonoBehaviour
         yield return request.Send();
         Debug.Log(request.IsError ? $"Error: {request.Error}" : $"File uploaded: ID = {request.ResponseData.Id}");
 
-        StartCoroutine(UploadJson(jsonString));
+        StartCoroutine(UploadJson(jsonString, fileName, selectedFolder, selectedSubFolder, fullPath));
     }
-    public IEnumerator UploadJson(string jsonString)
+    public IEnumerator UploadJson(string jsonString, string fileName, string selectedFolder, string selectedSubFolder, string fullPath)
     {
-        string selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result"; // Same folder as the image
-        string selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
-        string fullPath = $"{selectedFolder}/{selectedSubFolder}";
+        selectedFolder = PortraitInfoManager.Instance.selectedFolder + "_result"; // Same folder as the image
+        selectedSubFolder = PortraitInfoManager.Instance.selectedSubFolder;
+        fullPath = $"{selectedFolder}/{selectedSubFolder}";
 
         // Ensure the folder path exists
         yield return StartCoroutine(EnsureFolderPathExists(fullPath));
@@ -98,7 +101,7 @@ public class GoogleDriveManager : MonoBehaviour
         var content = System.Text.Encoding.UTF8.GetBytes(jsonString);
         var file = new UnityGoogleDrive.Data.File()
         {
-            Name = PortraitInfoManager.Instance.currentPortraitName.Replace(".jpg",".json"),
+            Name = fileName.Replace(".jpg",".json"),
             Content = content,
             Parents = new List<string> { folderNameToIdMap[selectedSubFolder] }, // Same parent folder as the image
             MimeType = "application/json"  // Set the MIME type for JSON
@@ -333,7 +336,29 @@ public class GoogleDriveManager : MonoBehaviour
         }
 
         var files = listRequest.ResponseData.Files.ToList();
-        files.Reverse();
+
+        // 1. 파일 이름에 "D0" 가 포함될 경우 1순위
+        // 2. 우선 순위가 결정된 "D0", "D28" 파일들은 F 가 포함될경우 1 순위, L 이 포함될경우 2 순위 R 이 포함될 경우 3순위 
+
+        Regex regex = new Regex(@"(\d+)(D\d+)(WH_)([FLR])");
+
+        files.Sort((file1, file2) =>
+        {
+            var match1 = regex.Match(file1.Name);
+            var match2 = regex.Match(file2.Name);
+
+            // First, compare the "D0" part directly
+            int dComparison = match1.Groups[2].Value.CompareTo(match2.Groups[2].Value);
+            if (dComparison != 0) return dComparison;
+
+            // Then, sort by the numeric part
+            int num1 = int.Parse(match1.Groups[1].Value);
+            int num2 = int.Parse(match2.Groups[1].Value);
+            if (num1 != num2) return num1.CompareTo(num2);
+
+            // Finally, sort by the suffix
+            return GetSuffixPriority(match1.Groups[4].Value).CompareTo(GetSuffixPriority(match2.Groups[4].Value));
+        });
 
         foreach (var file in files)
         {
@@ -371,6 +396,14 @@ public class GoogleDriveManager : MonoBehaviour
             if (!imageObject.name.Contains("01"))  // 제일 첫 번째 폴더의 사진들은 바로 보이게.
                 imageObject.SetActive(false);
         }
+    }
+    // Helper method to convert suffixes to sortable integers
+    int GetSuffixPriority(string suffix)
+    {
+        if (suffix == "F") return 1;
+        if (suffix == "L") return 2;
+        if (suffix == "R") return 3;
+        return 4; // Default case if none match, should not happen if data is consistent
     }
 
     public void StopImageDownload()
